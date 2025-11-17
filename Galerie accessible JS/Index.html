@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Galerie interactive accessible</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: Arial, sans-serif; margin: 1rem; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 1rem; }
+    figure { margin: 0; border: 2px solid transparent; padding: 0.25rem; border-radius: 6px; }
+    figure img { width: 100%; height: auto; display: block; }
+    figure:focus, figure.focused, figure:hover { outline: none; border-color: #2b8; box-shadow: 0 0 0 4px rgba(43,136,51,0.12); }
+    figcaption { padding: 0.5rem 0; font-size: .95rem; }
+    /* pour rendre la galerie plus lisible au clavier */
+    .sr-only { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Galerie interactive accessible</h1>
+    <p>Utilisez la souris ou le clavier (Tab) pour naviguer. Les figures reçoivent tabindex automatiquement au chargement.</p>
+  </header>
+
+  <main>
+    <section class="gallery" id="photoGallery" aria-label="Galerie de photos">
+      <figure data-index="1">
+        <img src="https://picsum.photos/id/1015/600/400" alt="Côte rocheuse au coucher du soleil" />
+        <figcaption>Rochers au coucher du soleil</figcaption>
+      </figure>
+
+      <figure data-index="2">
+        <img src="https://picsum.photos/id/1025/600/400" alt="Chien courant sur la plage" />
+        <figcaption>Chien sur la plage</figcaption>
+      </figure>
+
+      <figure data-index="3">
+        <img src="https://picsum.photos/id/1035/600/400" alt="Pont en ville la nuit, éclairé" />
+        <figcaption>Pont urbain nocturne</figcaption>
+      </figure>
+
+      <figure data-index="4">
+        <img src="https://picsum.photos/id/1043/600/400" alt="Gros plan d'une fleur rose avec gouttes de rosée" />
+        <figcaption>Fleur et rosée</figcaption>
+      </figure>
+
+      <figure data-index="5">
+        <img src="https://picsum.photos/id/1052/600/400" alt="Paysage de montagne avec lac bleu" />
+        <figcaption>Lac de montagne</figcaption>
+      </figure>
+
+      <figure data-index="6">
+        <img src="https://picsum.photos/id/1067/600/400" alt="Rue pavée d'un vieux quartier" />
+        <figcaption>Rue pavée</figcaption>
+      </figure>
+    </section>
+  </main>
+
+  <footer>
+    <p class="sr-only" id="assist">Galerie: utilisez Tab pour naviguer entre les images.</p>
+  </footer>
+
+  <script>
+    // Fonction appelée au chargement pour initialiser la galerie
+    function initGallery() {
+      console.log('initGallery: page chargée — initialisation de la galerie');
+      addTabFocus(); // ajoute tabindex et écouteurs
+      attachMouseHandlers(); // conserve les handlers souris existants
+    }
+
+    // Ajoute tabindex aux <figure> et associe onfocus/onblur et key handlers
+    function addTabFocus() {
+      const figures = document.querySelectorAll('#photoGallery figure');
+      console.log('addTabFocus: nombre de figures trouvées =', figures.length);
+
+      for (let i = 0; i < figures.length; i++) {
+        const fig = figures[i];
+
+        // Ajout de tabindex si non présent
+        if (!fig.hasAttribute('tabindex')) {
+          fig.setAttribute('tabindex', '0');
+          console.log(`tabindex ajouté à la figure index=${i+1}`);
+        }
+
+        // Focus / blur handlers
+        fig.addEventListener('focus', function (e) {
+          fig.classList.add('focused');
+          console.log(`figure ${i+1} focus reçu`);
+        });
+        fig.addEventListener('blur', function (e) {
+          fig.classList.remove('focused');
+          console.log(`figure ${i+1} blur reçu`);
+        });
+
+        // Key handler basique: Entrée ou Espace active l'image (ex: ouvrir en plus grand)
+        fig.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            console.log(`figure ${i+1} activée via clavier (Enter/Space)`);
+            // Ex: on pourrait ouvrir un modal ici, ou agrandir l'image.
+            fig.querySelector('img').click && fig.querySelector('img').click();
+          }
+          // Navigation possible avec les flèches gauche/droite
+          if (e.key === 'ArrowRight') {
+            const next = figures[(i+1) % figures.length];
+            next.focus();
+          } else if (e.key === 'ArrowLeft') {
+            const prev = figures[(i-1 + figures.length) % figures.length];
+            prev.focus();
+          }
+        });
+      }
+    }
+
+    // fonctions pour la souris : onmouseover / onmouseleave
+    function attachMouseHandlers() {
+      const figures = document.querySelectorAll('#photoGallery figure');
+      for (let i = 0; i < figures.length; i++) {
+        const fig = figures[i];
+
+        fig.addEventListener('mouseover', function () {
+          fig.classList.add('focused'); // montrer l'état visuel
+          console.log(`figure ${i+1} mouseover`);
+        });
+
+        fig.addEventListener('mouseleave', function () {
+          fig.classList.remove('focused');
+          console.log(`figure ${i+1} mouseleave`);
+        });
+      }
+    }
+
+    // Attache la fonction initGallery au chargement
+    window.addEventListener('load', initGallery);
+  </script>
+</body>
+</html>
